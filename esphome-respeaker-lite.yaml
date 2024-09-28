@@ -1,0 +1,529 @@
+substitutions:
+  voice_assist_idle_phase_id: "1"
+  voice_assist_listening_phase_id: "2"
+  voice_assist_thinking_phase_id: "3"
+  voice_assist_replying_phase_id: "4"
+  voice_assist_not_ready_phase_id: "10"
+  voice_assist_error_phase_id: "11"
+  voice_assist_muted_phase_id: "12"
+esphome:
+  name: respeaker-satellite
+  friendly_name: respeaker-satellite
+  min_version: 2024.9.0
+  platformio_options:
+    board_build.flash_mode: dio
+  on_boot:
+    priority: 600
+    then:
+      - script.execute: adjust_led
+      - delay: 30s
+      - if:
+          condition:
+            lambda: return id(init_in_progress);
+          then:
+            - lambda: id(init_in_progress) = false;
+            - script.execute: adjust_led
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 8MB
+  framework:
+    type: esp-idf
+    version: recommended
+    sdkconfig_options:
+      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: "y"
+      CONFIG_ESP32S3_DATA_CACHE_64KB: "y"
+      CONFIG_ESP32S3_DATA_CACHE_LINE_64B: "y"
+      CONFIG_ESP32S3_INSTRUCTION_CACHE_32KB: "y"
+      CONFIG_ESP32_S3_BOX_BOARD: "y"
+      CONFIG_SPIRAM_ALLOW_STACK_EXTERNAL_MEMORY: "y"
+      
+      CONFIG_SPIRAM_TRY_ALLOCATE_WIFI_LWIP: "y"
+
+      # Settings based on https://github.com/espressif/esp-adf/issues/297#issuecomment-783811702
+      CONFIG_ESP32_WIFI_STATIC_RX_BUFFER_NUM: "16"
+      CONFIG_ESP32_WIFI_DYNAMIC_RX_BUFFER_NUM: "512"
+      CONFIG_ESP32_WIFI_STATIC_TX_BUFFER: "y"
+      CONFIG_ESP32_WIFI_TX_BUFFER_TYPE: "0"
+      CONFIG_ESP32_WIFI_STATIC_TX_BUFFER_NUM: "8"
+      CONFIG_ESP32_WIFI_CACHE_TX_BUFFER_NUM: "32"
+      CONFIG_ESP32_WIFI_AMPDU_TX_ENABLED: "y"
+      CONFIG_ESP32_WIFI_TX_BA_WIN: "16"
+      CONFIG_ESP32_WIFI_AMPDU_RX_ENABLED: "y"
+      CONFIG_ESP32_WIFI_RX_BA_WIN: "32"
+      CONFIG_LWIP_MAX_ACTIVE_TCP: "16"
+      CONFIG_LWIP_MAX_LISTENING_TCP: "16"
+      CONFIG_TCP_MAXRTX: "12"
+      CONFIG_TCP_SYNMAXRTX: "6"
+      CONFIG_TCP_MSS: "1436"
+      CONFIG_TCP_MSL: "60000"
+      CONFIG_TCP_SND_BUF_DEFAULT: "65535"
+      CONFIG_TCP_WND_DEFAULT: "65535"  # Adjusted from linked settings to avoid compilation error
+      CONFIG_TCP_RECVMBOX_SIZE: "512"
+      CONFIG_TCP_QUEUE_OOSEQ: "y"
+      CONFIG_TCP_OVERSIZE_MSS: "y"
+      CONFIG_LWIP_WND_SCALE: "y"
+      CONFIG_TCP_RCV_SCALE: "3"
+      CONFIG_LWIP_TCPIP_RECVMBOX_SIZE: "512"
+
+      CONFIG_BT_ALLOCATION_FROM_SPIRAM_FIRST: "y"
+      CONFIG_BT_BLE_DYNAMIC_ENV_MEMORY: "y"
+
+psram:
+  mode: octal  # quad for N8R2 and octal for N16R8
+  speed: 80MHz
+
+external_components:
+  - source:
+      type: git
+      url: https://github.com/esphome/voice-kit
+      ref: dev
+    components:
+      - aic3204
+      - audio_dac
+      - media_player
+      - micro_wake_word
+      - microphone
+      - nabu
+      - nabu_microphone
+      - voice_assistant
+      - voice_kit
+    refresh: 0s
+
+api:
+  on_client_connected:
+    - script.execute: adjust_led
+  on_client_disconnected:
+    - script.execute: adjust_led
+
+ota:
+  - platform: esphome
+    id: ota_esphome
+    password: !secret ota_password
+
+logger:
+
+wifi:
+  ap:
+    ssid: "Respeaker-Satellite-1"
+    password: "SDCi3ZeMJi3d"
+  on_connect:
+    - script.execute: adjust_led
+  on_disconnect:
+    - script.execute: adjust_led
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  manual_ip:
+    static_ip: !secret respeaker_satellite_1_ip
+    gateway: !secret gateway
+    subnet: !secret subnet
+    dns1: !secret dns1
+  
+
+captive_portal:
+
+switch:
+  - platform: template
+    id: timer_ringing
+    optimistic: true
+    internal: true
+    restore_mode: ALWAYS_OFF
+    on_turn_on:
+      # Duck audio
+      - nabu.set_ducking:
+          decibel_reduction: 20
+          duration: 0.0s
+      # Ring timer
+      - script.execute: ring_timer
+      # Refresh LED
+      - script.execute: adjust_led
+      # If 15 minutes have passed and the timer is still ringing, stop it.
+      - delay: 15min
+      - switch.turn_off: timer_ringing
+    on_turn_off:
+      # Stop any current annoucement (ie: stop the timer ring mid playback)
+      - if:
+          condition:
+            lambda: return id(nabu_media_player)->state == media_player::MediaPlayerState::MEDIA_PLAYER_STATE_ANNOUNCING;
+          then:
+            lambda: |-
+              id(nabu_media_player)
+                ->make_call()
+                .set_command(media_player::MediaPlayerCommand::MEDIA_PLAYER_COMMAND_STOP)
+                .set_announcement(true)
+                .perform();
+      # Set back ducking ratio to zero
+      - nabu.set_ducking:
+          decibel_reduction: 0
+          duration: 1.0s
+      # Refresh the LED ring
+      - script.execute: adjust_led
+
+button:
+  - platform: safe_mode
+    id: button_safe_mode
+    name: Safe Mode Boot
+  - platform: factory_reset
+    id: factory_reset_btn
+    name: Factory reset
+  - platform: restart
+    name: Restart
+    id: but_rest
+  
+
+binary_sensor:
+  - platform: gpio
+    pin: 
+      number: GPIO4 # D3
+      inverted: true
+    id: mute
+    name: "Mute"
+  - platform: gpio
+    pin: 
+      number: GPIO3 # D2
+      inverted: true
+    id: user_button
+    name: "User button"
+    on_multi_click:
+      - timing:
+          - ON for at most 1s
+          - OFF for at least 0.25s
+        then:
+          - if:
+              condition:
+                lambda: return !id(init_in_progress);
+              then:
+                - if:
+                    condition:
+                      switch.is_on: timer_ringing
+                    then:
+                      - switch.turn_off: timer_ringing
+                    else:
+                      - if:
+                          condition:
+                            lambda: return id(nabu_media_player)->state == media_player::MediaPlayerState::MEDIA_PLAYER_STATE_ANNOUNCING;
+                          then:
+                            - lambda: |
+                                id(nabu_media_player)
+                                  ->make_call()
+                                  .set_command(media_player::MediaPlayerCommand::MEDIA_PLAYER_COMMAND_STOP)
+                                  .set_announcement(true)
+                                  .perform();
+                          else:
+                            - if:
+                                condition:
+                                  voice_assistant.is_running:
+                                then:
+                                  - voice_assistant.stop:
+                                else:
+                                  - if:
+                                      condition:
+                                        media_player.is_playing:
+                                      then:
+                                        - media_player.pause:
+                                      else:
+                                        - if:
+                                            condition:
+                                              and:
+                                                # - switch.is_off: master_mute_switch
+                                                - not:
+                                                    voice_assistant.is_running
+                                            then:
+                                              - voice_assistant.start:
+
+light:
+  - platform: esp32_rmt_led_strip
+    id: led_ww
+    rgb_order: GRB
+    pin: GPIO1
+    num_leds: 1
+    rmt_channel: 0
+    chipset: ws2812
+    name: none
+    disabled_by_default: true
+    entity_category: config
+    default_transition_length: 0s
+
+    effects:
+      - pulse:
+      - pulse:
+          name: "Fast Pulse"
+          transition_length: 100ms
+          update_interval: 100ms
+          min_brightness: 50%
+          max_brightness: 100%
+      - pulse:
+          name: "Slow Pulse"
+          transition_length: 250ms
+          update_interval: 250ms
+          min_brightness: 50%
+          max_brightness: 100%
+
+
+ # Audio and Voice Assistant Config  
+
+i2s_audio:
+  - id: i2s_output
+    i2s_lrclk_pin: 
+      number: GPIO7
+      allow_other_uses: true
+    i2s_bclk_pin:  
+      number: GPIO8
+      allow_other_uses: true
+    i2s_mclk_pin:  
+      number: GPIO9
+      allow_other_uses: true
+
+  - id: i2s_input
+    i2s_lrclk_pin:  
+      number: GPIO7
+      allow_other_uses: true
+    i2s_bclk_pin:  
+      number: GPIO8
+      allow_other_uses: true
+    i2s_mclk_pin:  
+      number: GPIO9
+      allow_other_uses: true
+
+microphone:
+  - platform: nabu_microphone
+    i2s_din_pin: GPIO44
+    adc_type: external
+    pdm: false
+    sample_rate: 16000
+    bits_per_sample: 32bit
+    i2s_mode: secondary
+    i2s_audio_id: i2s_input
+    channel_0:
+      id: nabu_mic_mww
+    channel_1:
+      id: nabu_mic_va
+      
+
+media_player:
+  - platform: nabu
+    id: nabu_media_player
+    name: Media Player
+    internal: false
+    sample_rate: 16000
+    i2s_dout_pin: GPIO43
+    bits_per_sample: 32bit
+    i2s_mode: secondary
+    i2s_audio_id: i2s_output
+    volume_increment: 0.05
+    volume_min: 0.4
+    volume_max: 0.85
+    on_announcement:
+      - nabu.set_ducking:
+          decibel_reduction: 20
+          duration: 0.0s
+    on_state:
+      if:
+        condition:
+          and:
+            - switch.is_off: timer_ringing
+            - not:
+                voice_assistant.is_running:
+            - not:
+                lambda: return id(nabu_media_player)->state == media_player::MediaPlayerState::MEDIA_PLAYER_STATE_ANNOUNCING;
+        then:
+          - nabu.set_ducking:
+              decibel_reduction: 0
+              duration: 1.0s
+
+micro_wake_word:
+  models:
+    - model: https://github.com/kahrendt/microWakeWord/releases/download/okay_nabu/okay_nabu.json
+  vad:
+  microphone: nabu_mic_mww
+  on_wake_word_detected:
+    # If a timer is ringing: Stop it, do not start the voice assistant (We can stop timer from voice!)
+    - if:
+        condition:
+          switch.is_on: timer_ringing
+        then:
+          - switch.turn_off: timer_ringing
+        # Start voice assistant, stop current announcement.
+        else:
+          - if:
+              condition:
+                lambda: return id(nabu_media_player)->state == media_player::MediaPlayerState::MEDIA_PLAYER_STATE_ANNOUNCING;
+              then:
+                lambda: |-
+                  id(nabu_media_player)
+                    ->make_call()
+                    .set_command(media_player::MediaPlayerCommand::MEDIA_PLAYER_COMMAND_STOP)
+                    .set_announcement(true)
+                    .perform();
+          - voice_assistant.start:
+              wake_word: !lambda return wake_word;
+
+voice_assistant:
+  id: va
+  microphone: nabu_mic_va
+  media_player: nabu_media_player
+  noise_suppression_level: 0
+  auto_gain: 0dBFS
+  volume_multiplier: 1
+  on_client_connected:
+    - lambda: id(init_in_progress) = false;
+    - micro_wake_word.start:
+    - lambda: id(voice_assistant_phase) = ${voice_assist_idle_phase_id};
+    - script.execute: adjust_led
+  on_client_disconnected:
+    - voice_assistant.stop:
+    - lambda: id(voice_assistant_phase) = ${voice_assist_not_ready_phase_id};
+    - script.execute: adjust_led
+  on_error:
+    - if:
+        condition:
+          lambda: return !id(init_in_progress);
+        then:
+          - lambda: id(voice_assistant_phase) = ${voice_assist_error_phase_id};
+          - script.execute: adjust_led
+          - delay: 1s
+          - lambda: id(voice_assistant_phase) = ${voice_assist_idle_phase_id};
+          - script.execute: adjust_led
+  on_start:
+    - nabu.set_ducking:
+        decibel_reduction: 20   # Number of dB quieter; higher implies more quiet, 0 implies full volume
+        duration: 0.0s          # The duration of the transition (default is 0)
+  on_listening:
+    - lambda: id(voice_assistant_phase) = ${voice_assist_listening_phase_id};
+    - script.execute: adjust_led
+  on_stt_vad_end:
+    - lambda: id(voice_assistant_phase) = ${voice_assist_thinking_phase_id};
+    - script.execute: adjust_led
+  on_tts_start:
+    - lambda: id(voice_assistant_phase) = ${voice_assist_replying_phase_id};
+    - script.execute: adjust_led
+  on_end:
+    - wait_until:
+        not:
+          voice_assistant.is_running:
+    - nabu.set_ducking:
+        decibel_reduction: 0   # 0 dB means no reduction
+        duration: 1.0s
+    - lambda: id(voice_assistant_phase) = ${voice_assist_idle_phase_id};
+    - script.execute: adjust_led
+  on_timer_finished:
+    - switch.turn_on: timer_ringing
+
+script:
+  - id: ring_timer
+    then:
+      - while:
+          condition:
+            switch.is_on: timer_ringing
+          then:
+            - media_player.play_media: http://{ha_ip}:8123/local/sounds/timer_finished.flac
+            - delay: 1s
+            - wait_until:
+                not:
+                  media_player.is_playing:
+  - id: adjust_led
+    then:
+      - if:
+          condition:
+            lambda: return !id(init_in_progress);
+          then:
+            - if: 
+                condition:
+                  switch.is_on: timer_ringing
+                then:
+                  - light.turn_on:
+                      id: led_ww           
+                      red: 0%
+                      green: 100%
+                      blue: 0%
+                      brightness: 60%
+                      effect: fast pulse 
+                else:
+                  - if:
+                      condition:
+                        wifi.connected:
+                      then:
+                        - if:
+                            condition:
+                              api.connected:
+                            then:
+                              - lambda: |
+                                  switch(id(voice_assistant_phase)) {
+                                    case ${voice_assist_listening_phase_id}:
+                                      id(led_ww).turn_on()
+                                        .set_brightness(0.6)
+                                        .set_rgb(1.0, 0.2, 1.0)
+                                        .set_effect("Slow Pulse")
+                                        .perform();
+                                      break;
+                                    case ${voice_assist_thinking_phase_id}:
+                                      id(led_ww).turn_on()
+                                        .set_brightness(0.6)
+                                        .set_rgb(1.0, 0.2, 1.0)
+                                        .set_effect("Fast Pulse")
+                                        .perform();
+                                      break;
+                                    case ${voice_assist_replying_phase_id}:
+                                      id(led_ww).turn_on()
+                                        .set_brightness(0.6)
+                                        .set_rgb(0.2, 1.0, 1.0)
+                                        .set_effect("Slow Pulse")
+                                        .perform();
+                                      break;
+                                    case ${voice_assist_error_phase_id}:
+                                      id(led_ww).turn_on()
+                                        .set_brightness(0.6)
+                                        .set_rgb(1.0, 1.0, 0.2)
+                                        .set_effect("Fast Pulse")
+                                        .perform();
+                                      break;
+                                    case ${voice_assist_muted_phase_id}:
+                                      id(led_ww).turn_on()
+                                        .set_brightness(0.3)
+                                        .set_rgb(1.0, 0.0, 0.0)
+                                        .perform();
+                                      break;
+                                    case ${voice_assist_not_ready_phase_id}:
+                                      id(led_ww).turn_on()
+                                        .set_brightness(0.3)
+                                        .set_rgb(1.0, 1.0, 0.2)
+                                        .perform();
+                                        break;
+                                    default:
+                                      id(led_ww).turn_off()
+                                        .perform();
+                                  }
+                            else:
+                              - light.turn_on:
+                                  id: led_ww           
+                                  red: 100%
+                                  green: 0%
+                                  blue: 0%
+                                  brightness: 40%
+                                  effect: fast pulse 
+                      else:
+                        - light.turn_on:
+                            id: led_ww           
+                            red: 100%
+                            green: 0%
+                            blue: 0%
+                            brightness: 40%
+                            effect: slow pulse
+          else:
+            - light.turn_on:
+                id: led_ww           
+                red: 100%
+                green: 100%
+                blue: 0%
+                brightness: 30%
+                effect: slow pulse
+
+globals:
+  - id: init_in_progress
+    type: bool
+    restore_value: false
+    initial_value: "true"
+  - id: voice_assistant_phase
+    type: int
+    restore_value: false
+    initial_value: ${voice_assist_not_ready_phase_id}
