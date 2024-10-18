@@ -4,7 +4,7 @@ I'm thankful for continuous help of ESPHome team and Seeed developers, that let 
 It's using [brilliant job of ESPHome team](https://github.com/esphome/home-assistant-voice-pe), as well as firmware and guides from [Seeed Wiki](https://wiki.seeedstudio.com/xiao_respeaker/) and [their repository for Respeaker](https://github.com/respeaker/ReSpeaker_Lite/tree/master).
 
 ### *Disclaimer
-Use this on your own risk.
+#### Use this on your own risk. Expect breaking changes.
 At the moment, all this is changing at very fast pace. Respeaker board considered alpha, PE (Voice Kit) software is under heavy development. I will try to update YAML and XMOS board firmware as soon as i can, but it can't be instantenuous...
 If you encounter a problem, before creating ticket here you may go to PE and Seeed repos, linked above, and see if something changed there. I'll gladly accept pull-requests. :)
 
