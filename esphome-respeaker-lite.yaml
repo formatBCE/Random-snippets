@@ -89,6 +89,9 @@ external_components:
       - voice_assistant
       - voice_kit
     refresh: 0s
+  - source: github://pr#7605
+    components: [ audio, i2s_audio, speaker]
+    refresh: 0s
 
 api:
   on_client_connected:
@@ -298,18 +301,24 @@ microphone:
       id: nabu_mic_mww
     channel_1:
       id: nabu_mic_va
-      
+
+speaker:
+  - platform: i2s_audio
+    sample_rate: 16000
+    i2s_mode: secondary
+    i2s_dout_pin: GPIO43
+    bits_per_sample: 32bit
+    i2s_audio_id: i2s_output
+    dac_type: external
+    channel: left
 
 media_player:
   - platform: nabu
     id: nabu_media_player
     name: Media Player
     internal: false
+    speaker:
     sample_rate: 16000
-    i2s_dout_pin: GPIO43
-    bits_per_sample: 32bit
-    i2s_mode: secondary
-    i2s_audio_id: i2s_output
     volume_increment: 0.05
     volume_min: 0.4
     volume_max: 0.85
