@@ -14,7 +14,7 @@ float RespeakerLite::get_setup_priority() const {
 void RespeakerLite::setup() {
   ESP_LOGI(TAG, "Setting up RespeakerLite...");
 
-  uint8_t command[3] = {0xF1, 0x81, 0x03};
+  uint8_t command[3] = {0xF0, 0xD8, 0x03};
   this->write(command, 3);
 
   uint8_t data[4];
@@ -23,7 +23,7 @@ void RespeakerLite::setup() {
     this->mark_failed();
     return;
   }
-  std::string firmware = std::to_string(arr[0]) + "." + std::to_string(arr[1]) + "." + std::to_string(arr[2]);
+  std::string firmware = std::to_string(data[1]) + "." + std::to_string(data[2]) + "." + std::to_string(data[3]);
   ESP_LOGI(TAG, "Firmware version: %s", firmware.c_str());
 }
 
