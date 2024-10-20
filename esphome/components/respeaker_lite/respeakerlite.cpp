@@ -26,7 +26,7 @@ void RespeakerLite::loop() {
   if (this->read(data, 1) != i2c::ERROR_OK) {
     ESP_LOGE(TAG, "unable to read mute state");
     // this->mark_failed();
-    return;
+    //return;
   }
   bool new_mute_state = data[0] == 0x01;
   if (this->mute_state_ != nullptr) {
