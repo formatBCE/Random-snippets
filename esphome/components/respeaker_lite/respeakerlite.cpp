@@ -23,9 +23,8 @@ void RespeakerLite::setup() {
     this->mark_failed();
     return;
   }
-  std::stringstream ss;
-  ss << static_cast<int>(data[1]) << '.' << static_cast<int>(data[2]) << '.' << static_cast<int>(data[3]);
-  ESP_LOGI(TAG, "Firmware version: %s", ss.str());
+  std::string firmware = std::to_string(arr[0]) + "." + std::to_string(arr[1]) + "." + std::to_string(arr[2]);
+  ESP_LOGI(TAG, "Firmware version: %s", firmware);
 }
 
 void RespeakerLite::loop() {
