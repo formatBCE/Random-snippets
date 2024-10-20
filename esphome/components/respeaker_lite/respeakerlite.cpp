@@ -13,25 +13,34 @@ float RespeakerLite::get_setup_priority() const {
 
 void RespeakerLite::setup() {
   ESP_LOGI(TAG, "Setting up RespeakerLite...");
+
+  uint8_t command[3] = {0xF1, 0x81, 0x03};
+  this->write(command, 3);
+
+  uint8_t data[4];
+  if (this->read(data, 4) !=i2c::ERROR_OK) {
+    ESP_LOGE(TAG, "Unable to read firmware version");
+    this->mark_failed();
+    return;
+  }
+  std::stringstream ss;
+  ss << static_cast<int>(data[1]) << '.' << static_cast<int>(data[2]) << '.' << static_cast<int>(data[3]);
+  ESP_LOGI(TAG, "Firmware version: %s", ss.str());
 }
 
 void RespeakerLite::loop() {
   uint8_t command[3] = {0xF1, 0x81, 0x01};
-  //command[0] = 0xF1;
-  //command[0] = 0x81;
-  //command[0] = 0x01;
   this->write(command, 3);
 
   uint8_t data[2];
   if (this->read(data, 2) != i2c::ERROR_OK) {
-    ESP_LOGE(TAG, "unable to read mute state");
-    // this->mark_failed();
-    //return;
+    ESP_LOGE(TAG, "Unable to read mute state");
+    return;
   }
   bool new_mute_state = data[1] == 0x01;
   if (this->mute_state_ != nullptr) {
     if (!this->mute_state_->has_state() || (this->mute_state_->state != new_mute_state)) {
-      ESP_LOGD(TAG, "RespeakerLite mute state: %d", new_mute_state);
+      ESP_LOGD(TAG, "Mic mute state: %d", new_mute_state);
       this->mute_state_->publish_state(new_mute_state);
     }
   }
