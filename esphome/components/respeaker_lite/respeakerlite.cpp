@@ -17,8 +17,12 @@ void RespeakerLite::setup() {
 
 void RespeakerLite::loop() {
   uint8_t command[3] = {0xF1, 0x81, 0x01};
+  command[0] = 0xF1;
+  command[0] = 0x81;
+  command[0] = 0x01;
+  write(command, 3)
+
   uint8_t data[1];
-  write(&command, 3)
   if (this->read(&data, 1) != i2c::ERROR_OK) {
     ESP_LOGE(TAG, "unable to read mute state");
     // this->mark_failed();
