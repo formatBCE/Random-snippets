@@ -20,21 +20,17 @@ void RespeakerLite::setup() {
 uint32_t now_time = 0;
 
 void RespeakerLite::loop() {
-  if (millis() - now_time > 1000) {
-    now_time = millis();
-
-    uint8_t data;
-    if (this->read_byte(RESPEAKER_LITE_MUTE_STATE, &data) != i2c::ERROR_OK) {
-      ESP_LOGE(TAG, "unable to read mute state");
-      this->mark_failed();
-      return;
-    }
-    bool new_mute_state = data == 0x01;
-    if (this->mute_state_ != nullptr) {
-      ESP_LOGD(TAG, "RespeakerLite mute state: %d", new_mute_state);
-      if (!this->mute_state_->has_state() || (this->mute_state_->state != new_mute_state)) {
-        this->mute_state_->publish_state(new_mute_state);
-      }
+  uint8_t data;
+  if (this->read_byte(RESPEAKER_LITE_MUTE_STATE, &data) != i2c::ERROR_OK) {
+    ESP_LOGE(TAG, "unable to read mute state");
+    this->mark_failed();
+    return;
+  }
+  bool new_mute_state = data == 0x01;
+  if (this->mute_state_ != nullptr) {
+    ESP_LOGD(TAG, "RespeakerLite mute state: %d", new_mute_state);
+    if (!this->mute_state_->has_state() || (this->mute_state_->state != new_mute_state)) {
+      this->mute_state_->publish_state(new_mute_state);
     }
   }
 }
