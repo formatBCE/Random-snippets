@@ -16,7 +16,7 @@ DEPENDENCIES = ['i2c']
 respeakerlite_ns = cg.esphome_ns.namespace('respeakerlite')
 RespeakerLite = respeakerlite_ns.class_('RespeakerLite', i2c.I2CDevice, cg.Component)
 CONF_MUTE_STATE= "mute_state"
-DEFAULT_ADDRESS = 0xF1
+DEFAULT_ADDRESS = 0x42
 
 CONFIG_SCHEMA = cv.COMPONENT_SCHEMA.extend(
     {

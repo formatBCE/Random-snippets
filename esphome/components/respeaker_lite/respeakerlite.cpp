@@ -7,7 +7,7 @@ namespace respeakerlite {
 
 static const char* const TAG = "respeaker_lite";
 
-static const uint8_t RESPEAKER_LITE_MUTE_STATE = 0x81;
+static const uint8_t RESPEAKER_LITE_MUTE_STATE = 0xF1;
 
 float RespeakerLite::get_setup_priority() const {
   return setup_priority::IO;
