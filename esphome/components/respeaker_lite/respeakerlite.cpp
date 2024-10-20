@@ -20,7 +20,7 @@ void RespeakerLite::loop() {
   command[0] = 0xF1;
   command[0] = 0x81;
   command[0] = 0x01;
-  write(command, 3)
+  write(command, 3);
 
   uint8_t data[1];
   if (this->read(&data, 1) != i2c::ERROR_OK) {
