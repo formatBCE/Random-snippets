@@ -6,9 +6,9 @@
 #include "esphome/core/component.h"
 
 namespace esphome {
-namespace respeakerlitec {
+namespace respeakerlite {
 
-class RespeakerLiteC : public i2c::I2CDevice, public Component {
+class RespeakerLite : public i2c::I2CDevice, public Component {
  public:
   void setup() override;
   void loop() override;
@@ -22,5 +22,5 @@ class RespeakerLiteC : public i2c::I2CDevice, public Component {
   binary_sensor::BinarySensor* mute_state_{nullptr};
 };
 
-}  // namespace respeakerlitec
+}  // namespace respeakerlite
 }  // namespace esphome

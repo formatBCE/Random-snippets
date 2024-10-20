@@ -14,13 +14,13 @@ AUTO_LOAD = [ "binary_sensor", "sensor" ]
 DEPENDENCIES = ['i2c']
 
 respeakerlite_ns = cg.esphome_ns.namespace('respeakerlite')
-RespeakerLiteC = respeakerlite_ns.class_('RespeakerLiteC', i2c.I2CDevice, cg.Component)
+RespeakerLite = respeakerlite_ns.class_('RespeakerLite', i2c.I2CDevice, cg.Component)
 CONF_MUTE_STATE= "mute_state"
 DEFAULT_ADDRESS = 0xF1
 
 CONFIG_SCHEMA = cv.COMPONENT_SCHEMA.extend(
     {
-        cv.GenerateID(): cv.declare_id(RespeakerLiteC),
+        cv.GenerateID(): cv.declare_id(RespeakerLite),
         cv.Optional(CONF_MUTE_STATE): binary_sensor.binary_sensor_schema(),
     }
 ).extend(i2c.i2c_device_schema(DEFAULT_ADDRESS))
