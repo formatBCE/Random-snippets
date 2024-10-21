@@ -20,6 +20,9 @@ unsigned long last_time = 0;
 const unsigned long interval = 1000;
 
 void RespeakerLite::get_firmware_version_() {
+  if (this->firmware_version_ == nullptr) {
+    return;
+  }
   const uint8_t version_req[] = {0xF0, 0xD8, 4};
   uint8_t version_resp[4];
 
@@ -34,8 +37,36 @@ void RespeakerLite::get_firmware_version_() {
     ESP_LOGW(TAG, "Read version failed");
     return;
   }
-  ESP_LOGI(TAG, "DFU version: %u.%u.%u", version_resp[1], version_resp[2], version_resp[3]);
-  this->firmware_version_->publish_state(std::to_string(version_resp[1]) + "." + std::to_string(version_resp[2]) + "." + std::to_string(version_resp[3]));
+  
+  std::string version = str_sprintf("%u.%u.%u", version_resp[1], version_resp[2], version_resp[3]);
+  ESP_LOGI(TAG, "DFU version: %s", version.c_str());
+  this->firmware_version_->publish_state(version);
+}
+
+void RespeakerLite::get_mute_state_() {
+  if (this->mute_state_ == nullptr) {
+    return;
+  }
+  uint8_t mute_req[3] = {0xF1, 0x81, 1};
+  uint8_t mute_resp[2];
+
+  auto error_code = this->write(mute_req, sizeof(mute_req));
+  if (error_code != i2c::ERROR_OK) {
+    ESP_LOGW(TAG, "Request mic mute state failed");
+    return;
+  }
+
+  error_code = this->read(mute_resp, sizeof(mute_resp));
+  if (error_code != i2c::ERROR_OK || mute_resp[0] != 0) {
+    ESP_LOGW(TAG, "Read mic mute state failed");
+    return;
+  }
+
+  bool new_mute_state = mute_resp[1] == 0x01;
+  if (!this->mute_state_->has_state() || (this->mute_state_->state != new_mute_state)) {
+    ESP_LOGI(TAG, "Mic mute state: %d", new_mute_state);
+    this->mute_state_->publish_state(new_mute_state);
+  }
 }
 
 void RespeakerLite::loop() {
@@ -45,21 +76,7 @@ void RespeakerLite::loop() {
   unsigned long current_time = millis();
   if (current_time - last_time >= interval) {
     last_time = current_time;
-    uint8_t command[3] = {0xF1, 0x81, 0x01};
-    this->write(command, 3);
-
-    uint8_t data[2];
-    if (this->read(data, 2) != i2c::ERROR_OK) {
-      ESP_LOGE(TAG, "Unable to read mute state");
-      return;
-    }
-    bool new_mute_state = data[1] == 0x01;
-    if (this->mute_state_ != nullptr) {
-      if (!this->mute_state_->has_state() || (this->mute_state_->state != new_mute_state)) {
-        ESP_LOGD(TAG, "Mic mute state: %d", new_mute_state);
-        this->mute_state_->publish_state(new_mute_state);
-      }
-    }
+    this->get_mute_state_();
   }
 }
 
