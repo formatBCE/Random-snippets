@@ -70,13 +70,14 @@ void RespeakerLite::get_mute_state_() {
 }
 
 void RespeakerLite::loop() {
+  if (!this->firmware_version_->has_state()) {
+    this->get_firmware_version_();
+  }
+  
   unsigned long current_time = millis();
   if (current_time - last_time >= interval) {
     last_time = current_time;
     this->get_mute_state_();
-    //if (!this->firmware_version_->has_state()) {
-    this->get_firmware_version_();
-    //}
   }
 }
 
