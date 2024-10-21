@@ -14,25 +14,34 @@ float RespeakerLite::get_setup_priority() const {
 
 void RespeakerLite::setup() {
   ESP_LOGI(TAG, "Setting up RespeakerLite...");
-
-  uint8_t command[3] = {0xF0, 0xD8, 0x03};
-  this->write(command, 3);
-
-  uint8_t data[4];
-  if (this->read(data, 4) !=i2c::ERROR_OK) {
-    ESP_LOGE(TAG, "Unable to read firmware version");
-    this->mark_failed();
-    return;
-  }
-  std::string firmware = std::to_string(data[1]) + "." + std::to_string(data[2]) + "." + std::to_string(data[3]);
-  ESP_LOGI(TAG, "Firmware version: %s", firmware.c_str());
-  this->firmware_version_->publish_state(firmware);
 }
 
 unsigned long last_time = 0;
 const unsigned long interval = 1000;
 
+void RespeakerLite::get_firmware_version() {
+  const uint8_t version_req[] = {0xF0, 0xD8, 4};
+  uint8_t version_resp[4];
+
+  auto error_code = this->write(version_req, sizeof(version_req));
+  if (error_code != i2c::ERROR_OK) {
+    ESP_LOGW(TAG, "Request version failed");
+    return;
+  }
+
+  error_code = this->read(version_resp, sizeof(version_resp));
+  if (error_code != i2c::ERROR_OK || version_resp[0] != 0) {
+    ESP_LOGW(TAG, "Read version failed");
+    return;
+  }
+  ESP_LOGI(TAG, "DFU version: %u.%u.%u", version_resp[1], version_resp[2], version_resp[3]);
+  this->firmware_version_->publish_state(std::to_string(version_resp[1]) + "." + std::to_string(version_resp[2]) + "." + std::to_string(version_resp[3]));
+}
+
 void RespeakerLite::loop() {
+  if (!this->firmware_version_->has_state()) {
+    get_firmware_version()
+  }
   unsigned long current_time = millis();
   if (current_time - last_time >= interval) {
     last_time = current_time;
