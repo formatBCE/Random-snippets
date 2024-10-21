@@ -19,7 +19,7 @@ void RespeakerLite::setup() {
 unsigned long last_time = 0;
 const unsigned long interval = 1000;
 
-void RespeakerLite::get_firmware_version() {
+void RespeakerLite::get_firmware_version_() {
   const uint8_t version_req[] = {0xF0, 0xD8, 4};
   uint8_t version_resp[4];
 

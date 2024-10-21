@@ -26,6 +26,8 @@ class RespeakerLite : public i2c::I2CDevice, public Component {
  protected:
   binary_sensor::BinarySensor *mute_state_{nullptr};
   text_sensor::TextSensor *firmware_version_{nullptr};
+
+  void get_firmware_version_();
 };
 
 }  // namespace respeakerlite
