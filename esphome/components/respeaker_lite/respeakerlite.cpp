@@ -27,20 +27,27 @@ void RespeakerLite::setup() {
   ESP_LOGI(TAG, "Firmware version: %s", firmware.c_str());
 }
 
-void RespeakerLite::loop() {
-  uint8_t command[3] = {0xF1, 0x81, 0x01};
-  this->write(command, 3);
+unsigned long last_time = 0;
+const unsigned long interval = 1000;
 
-  uint8_t data[2];
-  if (this->read(data, 2) != i2c::ERROR_OK) {
-    ESP_LOGE(TAG, "Unable to read mute state");
-    return;
-  }
-  bool new_mute_state = data[1] == 0x01;
-  if (this->mute_state_ != nullptr) {
-    if (!this->mute_state_->has_state() || (this->mute_state_->state != new_mute_state)) {
-      ESP_LOGD(TAG, "Mic mute state: %d", new_mute_state);
-      this->mute_state_->publish_state(new_mute_state);
+void RespeakerLite::loop() {
+  unsigned long current_time = millis();
+  if (current_time - last_time >= interval) {
+    last_time = current_time;
+    uint8_t command[3] = {0xF1, 0x81, 0x01};
+    this->write(command, 3);
+
+    uint8_t data[2];
+    if (this->read(data, 2) != i2c::ERROR_OK) {
+      ESP_LOGE(TAG, "Unable to read mute state");
+      return;
+    }
+    bool new_mute_state = data[1] == 0x01;
+    if (this->mute_state_ != nullptr) {
+      if (!this->mute_state_->has_state() || (this->mute_state_->state != new_mute_state)) {
+        ESP_LOGD(TAG, "Mic mute state: %d", new_mute_state);
+        this->mute_state_->publish_state(new_mute_state);
+      }
     }
   }
 }
