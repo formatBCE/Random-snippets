@@ -14,24 +14,20 @@ float RespeakerLite::get_setup_priority() const {
 void RespeakerLite::setup() {
   ESP_LOGI(TAG, "Setting up RespeakerLite...");
 
-  
-}
+  uint8_t command[3] = {0xF0, 0xD8, 0x03};
+  this->write(command, 3);
 
-void RespeakerLite::loop() {
-  uint8_t command_fw[3] = {0xF0, 0xD8, 0x03};
-  this->write(command_fw, 3);
-
-  uint8_t data_fw[4];
-  if (this->read(data_fw, 4) !=i2c::ERROR_OK) {
+  uint8_t data[4];
+  if (this->read(data, 4) !=i2c::ERROR_OK) {
     ESP_LOGE(TAG, "Unable to read firmware version");
     this->mark_failed();
     return;
   }
-  std::string firmware = std::to_string(data_fw[1]) + "." + std::to_string(data_fw[2]) + "." + std::to_string(data_fw[3]);
+  std::string firmware = std::to_string(data[1]) + "." + std::to_string(data[2]) + "." + std::to_string(data[3]);
   ESP_LOGI(TAG, "Firmware version: %s", firmware.c_str());
+}
 
-
-
+void RespeakerLite::loop() {
   uint8_t command[3] = {0xF1, 0x81, 0x01};
   this->write(command, 3);
 
