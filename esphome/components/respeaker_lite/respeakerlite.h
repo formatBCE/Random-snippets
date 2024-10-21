@@ -2,7 +2,7 @@
 
 #include <utility>
 #include "esphome/components/binary_sensor/binary_sensor.h"
-#include "esphome/components/sensor/sensor.h"
+#include "esphome/components/text_sensor/text_sensor.h"
 #include "esphome/components/i2c/i2c.h"
 #include "esphome/core/component.h"
 
@@ -19,13 +19,13 @@ class RespeakerLite : public i2c::I2CDevice, public Component {
     this->mute_state_ = mute_state;
   }
 
-  void set_firmware_version(sensor::Sensor* firmware_version) {
+  void set_firmware_version(text_sensor::TextSensor* firmware_version) {
     this->firmware_version_ = firmware_version;
   }
 
  protected:
-  binary_sensor::BinarySensor* mute_state_{nullptr};
-  sensor::Sensor* firmware_version_{nullptr};
+  binary_sensor::BinarySensor *mute_state_{nullptr};
+  text_sensor::TextSensor *firmware_version_{nullptr};
 };
 
 }  // namespace respeakerlite
