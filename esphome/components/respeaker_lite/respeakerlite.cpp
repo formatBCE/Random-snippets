@@ -26,7 +26,7 @@ void RespeakerLite::setup() {
   }
   std::string firmware = std::to_string(data[1]) + "." + std::to_string(data[2]) + "." + std::to_string(data[3]);
   ESP_LOGI(TAG, "Firmware version: %s", firmware.c_str());
-  this->firmware_version_->publish_state(&firmware);
+  this->firmware_version_->publish_state(firmware);
 }
 
 unsigned long last_time = 0;
