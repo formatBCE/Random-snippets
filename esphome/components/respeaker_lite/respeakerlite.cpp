@@ -40,7 +40,7 @@ void RespeakerLite::get_firmware_version_() {
 
 void RespeakerLite::loop() {
   if (!this->firmware_version_->has_state()) {
-    get_firmware_version()
+    this->get_firmware_version();
   }
   unsigned long current_time = millis();
   if (current_time - last_time >= interval) {
