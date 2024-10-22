@@ -8,16 +8,20 @@ namespace respeakerlite {
 
 static const char* const TAG = "respeaker_lite";
 
-float RespeakerLite::get_setup_priority() const {
-  return setup_priority::AFTER_CONNECTION;
-}
-
 void RespeakerLite::setup() {
   ESP_LOGI(TAG, "Setting up RespeakerLite...");
-  if (!this->get_firmware_version_()) {
-    ESP_LOGE(TAG, "Failed to initialize DFU");
-    this->mark_failed();
-  }
+  // Reset device using the reset pin
+  this->reset_pin_->setup();
+  this->reset_pin_->digital_write(true);
+  delay(1);
+  this->reset_pin_->digital_write(false);
+  // Wait for XMOS to boot...
+  this->set_timeout(3000, [this]() {
+    if (!this->get_firmware_version_()) {
+      ESP_LOGE(TAG, "Failed to initialize DFU");
+      this->mark_failed();
+    }
+  });
 }
 
 unsigned long last_time = 0;

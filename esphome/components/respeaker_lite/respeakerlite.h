@@ -23,7 +23,12 @@ class RespeakerLite : public i2c::I2CDevice, public Component {
     this->firmware_version_ = firmware_version;
   }
 
+  void set_reset_pin(GPIOPin *reset_pin) { 
+    this->reset_pin_ = reset_pin; 
+  }
+
  protected:
+  GPIOPin *reset_pin_;
   binary_sensor::BinarySensor *mute_state_{nullptr};
   text_sensor::TextSensor *firmware_version_{nullptr};
 
