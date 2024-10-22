@@ -1,10 +1,12 @@
 #pragma once
 
-#include <utility>
+//#include <utility>
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/text_sensor/text_sensor.h"
 #include "esphome/components/i2c/i2c.h"
 #include "esphome/core/component.h"
+#include "esphome/core/defines.h"
+#include "esphome/core/hal.h"
 
 namespace esphome {
 namespace respeakerlite {
