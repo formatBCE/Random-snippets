@@ -9,17 +9,15 @@ namespace respeakerlite {
 static const char* const TAG = "respeaker_lite";
 
 float RespeakerLite::get_setup_priority() const {
-  return setup_priority::IO;
+  return setup_priority::AFTER_CONNECTION;
 }
 
 void RespeakerLite::setup() {
   ESP_LOGI(TAG, "Setting up RespeakerLite...");
-  this->set_timeout(3000, [this]() {
-    if (!this->get_firmware_version_()) {
-      ESP_LOGE(TAG, "Failed to initialize DFU");
-      this->mark_failed();
-    }
-  });
+  if (!this->get_firmware_version_()) {
+    ESP_LOGE(TAG, "Failed to initialize DFU");
+    this->mark_failed();
+  }
 }
 
 unsigned long last_time = 0;
