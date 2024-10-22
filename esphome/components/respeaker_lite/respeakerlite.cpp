@@ -14,7 +14,6 @@ float RespeakerLite::get_setup_priority() const {
 
 void RespeakerLite::setup() {
   ESP_LOGI(TAG, "Setting up RespeakerLite...");
-  this->get_firmware_version_();
 }
 
 unsigned long last_time = 0;
@@ -22,24 +21,26 @@ const unsigned long interval = 1000;
 
 void RespeakerLite::get_firmware_version_() {
   if (this->firmware_version_ != nullptr) {
-    const uint8_t version_req[] = {0xF0, 0xD8, 4};
-    uint8_t version_resp[4];
+    if (!this->firmware_version_->has_state()) {
+      const uint8_t version_req[] = {0xF0, 0xD8, 4};
+      uint8_t version_resp[4];
 
-    auto error_code = this->write(version_req, sizeof(version_req));
-    if (error_code != i2c::ERROR_OK) {
-      ESP_LOGW(TAG, "Request version failed");
-      return;
-    }
+      auto error_code = this->write(version_req, sizeof(version_req));
+      if (error_code != i2c::ERROR_OK) {
+        ESP_LOGW(TAG, "Request version failed");
+        return;
+      }
 
-    error_code = this->read(version_resp, sizeof(version_resp));
-    if (error_code != i2c::ERROR_OK || version_resp[0] != 0) {
-      ESP_LOGW(TAG, "Read version failed");
-      return;
+      error_code = this->read(version_resp, sizeof(version_resp));
+      if (error_code != i2c::ERROR_OK || version_resp[0] != 0) {
+        ESP_LOGW(TAG, "Read version failed");
+        return;
+      }
+      
+      std::string version = str_sprintf("%u.%u.%u", version_resp[1], version_resp[2], version_resp[3]);
+      ESP_LOGI(TAG, "DFU version: %s", version.c_str());
+      this->firmware_version_->publish_state(version);
     }
-    
-    std::string version = str_sprintf("%u.%u.%u", version_resp[1], version_resp[2], version_resp[3]);
-    ESP_LOGI(TAG, "DFU version: %s", version.c_str());
-    this->firmware_version_->publish_state(version);
   }
 }
 
@@ -69,11 +70,8 @@ void RespeakerLite::get_mute_state_() {
 }
 
 void RespeakerLite::loop() {
-  unsigned long current_time = millis();
-  if (current_time - last_time >= interval) {
-    last_time = current_time;
     this->get_mute_state_();
-  }
+    this->get_firmware_version_();
 }
 
 }  // namespace respeakerlite
