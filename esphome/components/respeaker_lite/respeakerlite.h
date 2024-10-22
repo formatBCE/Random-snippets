@@ -15,7 +15,6 @@ class RespeakerLite : public i2c::I2CDevice, public Component {
  public:
   void setup() override;
   void loop() override;
-  float get_setup_priority() const override;
 
   void set_mute_state(binary_sensor::BinarySensor* mute_state) {
     this->mute_state_ = mute_state;
