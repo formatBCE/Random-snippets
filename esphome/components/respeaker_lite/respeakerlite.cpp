@@ -7,10 +7,7 @@ namespace esphome {
 namespace respeakerlite {
 
 static const char* const TAG = "respeaker_lite";
-
-float RespeakerLite::get_setup_priority() const {
-  return setup_priority::AFTER_CONNECTION;
-}
+bool initialized = false;
 
 void RespeakerLite::setup() {
   ESP_LOGI(TAG, "Setting up RespeakerLite...");
@@ -21,19 +18,19 @@ void RespeakerLite::setup() {
   this->reset_pin_->digital_write(false);
   // Wait for XMOS to boot...
   this->set_timeout(3000, [this]() {
-    if (!this->get_firmware_version_()) {
-      ESP_LOGE(TAG, "Failed to initialize DFU");
+    if (this->get_firmware_version_()) {
+      initialized = true;
+    } else {
+      ESP_LOGE(TAG, "Failed to initialize Respeaker");
       this->mark_failed();
     }
   });
 }
 
-unsigned long last_time = 0;
-const unsigned long interval = 1000;
-
 bool RespeakerLite::get_firmware_version_() {
   if (this->firmware_version_ != nullptr) {
     if (!this->firmware_version_->has_state()) {
+      ESP_LOGI(TAG, "Reading firmware version");
       const uint8_t version_req[] = {0xF0, 0xD8, 4};
       uint8_t version_resp[4];
 
@@ -50,7 +47,7 @@ bool RespeakerLite::get_firmware_version_() {
       }
       
       std::string version = str_sprintf("%u.%u.%u", version_resp[1], version_resp[2], version_resp[3]);
-      ESP_LOGI(TAG, "DFU version: %s", version.c_str());
+      ESP_LOGI(TAG, "Firmware version: %s", version.c_str());
       this->firmware_version_->publish_state(version);
     }
   }
@@ -83,7 +80,9 @@ void RespeakerLite::get_mute_state_() {
 }
 
 void RespeakerLite::loop() {
+  if (initialized) {
     this->get_mute_state_();
+  }
 }
 
 }  // namespace respeakerlite
