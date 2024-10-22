@@ -8,6 +8,10 @@ namespace respeakerlite {
 
 static const char* const TAG = "respeaker_lite";
 
+float RespeakerLite::get_setup_priority() const {
+  return setup_priority::AFTER_CONNECTION;
+}
+
 void RespeakerLite::setup() {
   ESP_LOGI(TAG, "Setting up RespeakerLite...");
   // Reset device using the reset pin
