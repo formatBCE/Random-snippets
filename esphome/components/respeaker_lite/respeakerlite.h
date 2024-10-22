@@ -21,6 +21,7 @@ class RespeakerLite : public i2c::I2CDevice, public Component {
 
   void set_firmware_version(text_sensor::TextSensor* firmware_version) {
     this->firmware_version_ = firmware_version;
+    this->get_firmware_version_();
   }
 
  protected:
