@@ -14,12 +14,18 @@ float RespeakerLite::get_setup_priority() const {
 
 void RespeakerLite::setup() {
   ESP_LOGI(TAG, "Setting up RespeakerLite...");
+  this->set_timeout(3000, [this]() {
+    if (!this->get_firmware_version_()) {
+      ESP_LOGE(TAG, "Failed to initialize DFU");
+      this->mark_failed();
+    }
+  });
 }
 
 unsigned long last_time = 0;
 const unsigned long interval = 1000;
 
-void RespeakerLite::get_firmware_version_() {
+bool RespeakerLite::get_firmware_version_() {
   if (this->firmware_version_ != nullptr) {
     if (!this->firmware_version_->has_state()) {
       const uint8_t version_req[] = {0xF0, 0xD8, 4};
@@ -28,13 +34,13 @@ void RespeakerLite::get_firmware_version_() {
       auto error_code = this->write(version_req, sizeof(version_req));
       if (error_code != i2c::ERROR_OK) {
         ESP_LOGW(TAG, "Request version failed");
-        return;
+        return false;
       }
 
       error_code = this->read(version_resp, sizeof(version_resp));
       if (error_code != i2c::ERROR_OK || version_resp[0] != 0) {
         ESP_LOGW(TAG, "Read version failed");
-        return;
+        return false;
       }
       
       std::string version = str_sprintf("%u.%u.%u", version_resp[1], version_resp[2], version_resp[3]);
@@ -42,6 +48,7 @@ void RespeakerLite::get_firmware_version_() {
       this->firmware_version_->publish_state(version);
     }
   }
+  return true;
 }
 
 void RespeakerLite::get_mute_state_() {
@@ -71,7 +78,6 @@ void RespeakerLite::get_mute_state_() {
 
 void RespeakerLite::loop() {
     this->get_mute_state_();
-    this->get_firmware_version_();
 }
 
 }  // namespace respeakerlite
