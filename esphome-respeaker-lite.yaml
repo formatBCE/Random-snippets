@@ -76,10 +76,10 @@ psram:
 external_components:
   - source:
       type: git
-      #url: https://github.com/esphome/voice-kit
-      #ref: dev
-      url: https://github.com/formatBCE/home-assistant-voice-pe
-      ref: format_bce
+      url: https://github.com/esphome/voice-kit
+      ref: dev
+      #url: https://github.com/formatBCE/home-assistant-voice-pe
+      #ref: format_bce
     components:
       - aic3204
       - audio_dac
@@ -89,10 +89,15 @@ external_components:
       - nabu
       - nabu_microphone
       - voice_assistant
-      - voice_kit
     refresh: 0s
   - source: github://pr#7605
     components: [ audio, i2s_audio, speaker]
+    refresh: 0s
+  - source:
+      type: git
+      url: https://github.com/formatBCE/Respeaker-Lite-ESPHome-integration
+      ref: dev
+    components: [ respeaker_lite ]
     refresh: 0s
 
 api:
@@ -109,25 +114,59 @@ ota:
 logger:
 
 wifi:
-  ap:
-    ssid: "Respeaker-Satellite-1"
-    password: "SDCi3ZeMJi3d"
   on_connect:
     - script.execute: adjust_led
   on_disconnect:
     - script.execute: adjust_led
   ssid: !secret wifi_ssid
   password: !secret wifi_password
-  manual_ip:
-    static_ip: !secret respeaker_satellite_1_ip
-    gateway: !secret gateway
-    subnet: !secret subnet
-    dns1: !secret dns1
   
 
 captive_portal:
 
+i2c:
+  - id: bus_a
+    sda: GPIO5
+    scl: GPIO6
+    scan: true
+
+respeaker_lite:
+  id: respeaker
+  i2c_id: bus_a
+  reset_pin: GPIO2
+  mute_state:
+    internal: true
+    id: mute_state
+  firmware_version:
+    icon: mdi:application-cog
+    name: XMOS firmware version
+    internal: false
+    id: firmware_version
+
 switch:
+  - platform: gpio
+    internal: true
+    pin: 
+      number: GPIO4 # D3
+      inverted: true
+    id: mute_toggle
+    on_turn_on:
+      - delay: 300ms
+      - switch.turn_off: mute_toggle
+  - platform: template
+    id: mic_mute_switch
+    name: Mic mute
+    icon: mdi:microphone-off
+    lambda: |-
+      if (id(mute_state).state) {
+        return true;
+      } else {
+        return false;
+      }
+    turn_on_action:
+      - switch.turn_on: mute_toggle
+    turn_off_action:
+      - switch.turn_on: mute_toggle
   - platform: template
     id: timer_ringing
     optimistic: true
@@ -177,12 +216,6 @@ button:
   
 
 binary_sensor:
-  - platform: gpio
-    pin: 
-      number: GPIO4 # D3
-      inverted: true
-    id: mute
-    name: "Mute"
   - platform: gpio
     pin: 
       number: GPIO3 # D2
@@ -264,7 +297,6 @@ light:
           min_brightness: 50%
           max_brightness: 100%
 
-
  # Audio and Voice Assistant Config  
 
 i2s_audio:
@@ -322,8 +354,8 @@ media_player:
     speaker:
     sample_rate: 16000
     volume_increment: 0.05
-    volume_min: 0.4
-    volume_max: 0.85
+    volume_min: 0.0
+    volume_max: 1.0
     on_announcement:
       - nabu.set_ducking:
           decibel_reduction: 20
@@ -344,7 +376,10 @@ media_player:
 
 micro_wake_word:
   models:
-    - model: https://github.com/kahrendt/microWakeWord/releases/download/okay_nabu/okay_nabu.json
+    - model: okay_nabu
+    - model: https://github.com/kahrendt/microWakeWord/releases/download/stop/stop.json
+      id: stop
+      internal: true
   vad:
   microphone: nabu_mic_mww
   on_wake_word_detected:
@@ -408,6 +443,7 @@ voice_assistant:
   on_tts_start:
     - lambda: id(voice_assistant_phase) = ${voice_assist_replying_phase_id};
     - script.execute: adjust_led
+    - script.execute: activate_stop_word_if_tts_step_is_long
   on_end:
     - wait_until:
         not:
@@ -417,6 +453,7 @@ voice_assistant:
         duration: 1.0s
     - lambda: id(voice_assistant_phase) = ${voice_assist_idle_phase_id};
     - script.execute: adjust_led
+    - script.stop: activate_stop_word_if_tts_step_is_long
   on_timer_finished:
     - switch.turn_on: timer_ringing
 
@@ -432,6 +469,15 @@ script:
             - wait_until:
                 not:
                   media_player.is_playing:
+  # Script used activate the stop word if the TTS step is long.
+  # Why is this wrapped on a script?
+  #   Becasue we want to stop the sequence if the TTS step is faster than that.
+  #   This allows us to prevent having the deactivation of the stop word before its own activation.
+  - id: activate_stop_word_if_tts_step_is_long
+    then:
+      - delay: 1s
+      # Enable stop wake word
+      - lambda: id(stop).enable();
   - id: adjust_led
     then:
       - if:
