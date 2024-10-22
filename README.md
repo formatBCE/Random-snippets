@@ -26,11 +26,12 @@ With this board i finally can build device, that will satisfy me and (more impor
 - media ducking while voice communication ongoing: works
 - interactions with HA timers: works
 - LED: works (also can be exposed as light in HA)
-- mute: hardware button works
+- mute: hardware button works, software button works
 - action button: works, multifunctional, based on PE logic
 
 ### ToDo
-- software mute switch. Software triggering works, but state read doesn't work so far (needs custom ESPHome component for reading mute status with i2c). Check [Arduino example here](https://github.com/respeaker/ReSpeaker_Lite/blob/master/xiao_esp32s3_examples/xiao_i2c_get_register_value/xiao_i2c_get_register_value.ino#L55) if you want to help
+- DONE ~~software mute switch. Software triggering works, but state read doesn't work so far (needs custom ESPHome component for reading mute status with i2c). Check [Arduino example here](https://github.com/respeaker/ReSpeaker_Lite/blob/master/xiao_esp32s3_examples/xiao_i2c_get_register_value/xiao_i2c_get_register_value.ino#L55) if you want to help~~
+- OTA software update for Respeaker board. Can snug this functionality from PE project.
 - 48kHz bitrate. Right now the board works on 16kHz, but i convinced Seeed guys that we can try using 48kHz for better sound experience. They promised to deliver special firmware soon. Great guys!
 - hardware volume controls. Would be nice to have, but there's no pins left on ESP32... Thinking...
 - bigger LED strip. The problem is same as for hardware volume...
