@@ -1,10 +1,10 @@
-#include "respeakerlite.h"
+#include "respeaker_lite.h"
 #include "esphome/core/helpers.h"
 #include "esphome/core/log.h"
 #include "esphome/core/hal.h"
 
 namespace esphome {
-namespace respeakerlite {
+namespace respeaker_lite {
 
 static const char* const TAG = "respeaker_lite";
 bool initialized = false;
@@ -84,7 +84,7 @@ void mute_speaker() {
 }
 
 void unmute_speaker() {
-  
+
 }
 
 void RespeakerLite::loop() {
@@ -93,5 +93,5 @@ void RespeakerLite::loop() {
   }
 }
 
-}  // namespace respeakerlite
+}  // namespace respeaker_lite
 }  // namespace esphome

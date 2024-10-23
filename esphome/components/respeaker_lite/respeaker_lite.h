@@ -9,7 +9,7 @@
 #include "esphome/core/hal.h"
 
 namespace esphome {
-namespace respeakerlite {
+namespace respeaker_lite {
 
 class RespeakerLite : public i2c::I2CDevice, public Component {
  public:
@@ -40,5 +40,5 @@ class RespeakerLite : public i2c::I2CDevice, public Component {
   void get_mic_mute_state_();
 };
 
-}  // namespace respeakerlite
+}  // namespace respeaker_lite
 }  // namespace esphome

@@ -13,10 +13,10 @@ AUTO_LOAD = [ "binary_sensor", "text_sensor" ]
 
 DEPENDENCIES = ['i2c']
 
-respeakerlite_ns = cg.esphome_ns.namespace('respeakerlite')
-RespeakerLite = respeakerlite_ns.class_('RespeakerLite', i2c.I2CDevice, cg.Component)
-MuteSpeakerAction = respeakerlite_ns.class_("MuteSpeakerAction", automation.Action)
-UnmuteSpeakerAction = respeakerlite_ns.class_("UnmuteSpeakerAction", automation.Action)
+respeaker_lite_ns = cg.esphome_ns.namespace('respeaker_lite')
+RespeakerLite = respeaker_lite_ns.class_('RespeakerLite', i2c.I2CDevice, cg.Component)
+MuteSpeakerAction = respeaker_lite_ns.class_("MuteSpeakerAction", automation.Action)
+UnmuteSpeakerAction = respeaker_lite_ns.class_("UnmuteSpeakerAction", automation.Action)
 
 CONF_MUTE_STATE= "mute_state"
 CONF_FIRMWARE_VERSION= "firmware_version"
@@ -49,5 +49,5 @@ async def to_code(config):
 
     RESPEAKER_LITE_ACTION_SCHEMA = cv.Schema({cv.GenerateID(): cv.use_id(RespeakerLite)})
 
-    @register_action("respeakerlite.mute_speaker", MuteSpeakerAction, RESPEAKER_LITE_ACTION_SCHEMA)
-    @register_action("respeakerlite.unmute_speaker", UnmuteSpeakerAction, RESPEAKER_LITE_ACTION_SCHEMA)
+    @register_action("respeaker_lite.mute_speaker", MuteSpeakerAction, RESPEAKER_LITE_ACTION_SCHEMA)
+    @register_action("respeaker_lite.unmute_speaker", UnmuteSpeakerAction, RESPEAKER_LITE_ACTION_SCHEMA)
