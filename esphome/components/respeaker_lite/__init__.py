@@ -1,6 +1,6 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import binary_sensor, i2c, sensor
+from esphome.components import i2c, binary_sensor, text_sensor
 from esphome.const import (
     CONF_ID,
     CONF_RESET_PIN
@@ -15,8 +15,6 @@ DEPENDENCIES = ['i2c']
 
 respeaker_lite_ns = cg.esphome_ns.namespace('respeaker_lite')
 RespeakerLite = respeaker_lite_ns.class_('RespeakerLite', i2c.I2CDevice, cg.Component)
-#MuteSpeakerAction = respeaker_lite_ns.class_("MuteSpeakerAction", automation.Action)
-#UnmuteSpeakerAction = respeaker_lite_ns.class_("UnmuteSpeakerAction", automation.Action)
 
 CONF_MUTE_STATE= "mute_state"
 CONF_FIRMWARE_VERSION= "firmware_version"
