@@ -102,7 +102,7 @@ external_components:
   - source:
       type: git
       url: https://github.com/formatBCE/Respeaker-Lite-ESPHome-integration
-      ref: dev
+      ref: main
     components: [ respeaker_lite ]
     refresh: 0s
 
