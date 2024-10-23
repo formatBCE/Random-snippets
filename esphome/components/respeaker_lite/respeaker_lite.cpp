@@ -80,11 +80,23 @@ void RespeakerLite::get_mic_mute_state_() {
 }
 
 void RespeakerLite::mute_speaker() {
+  uint8_t mute_req[3] = {0xF1, 0x10, 1};
+  uint8_t mute_resp[2];
 
+  auto error_code = this->write(mute_req, sizeof(mute_req));
+  if (error_code != i2c::ERROR_OK) {
+    ESP_LOGW(TAG, "Mute speaker failed");
+  }
 }
 
 void RespeakerLite::unmute_speaker() {
+  uint8_t mute_req[3] = {0xF1, 0x10, 0};
+  uint8_t mute_resp[2];
 
+  auto error_code = this->write(mute_req, sizeof(mute_req));
+  if (error_code != i2c::ERROR_OK) {
+    ESP_LOGW(TAG, "Unmute speaker failed");
+  }
 }
 
 void RespeakerLite::loop() {
