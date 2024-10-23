@@ -1,10 +1,10 @@
-#include "respeakerlite.h"
+#include "respeaker_lite.h"
 #include "esphome/core/helpers.h"
 #include "esphome/core/log.h"
 #include "esphome/core/hal.h"
 
 namespace esphome {
-namespace respeakerlite {
+namespace respeaker_lite {
 
 static const char* const TAG = "respeaker_lite";
 bool initialized = false;
@@ -54,7 +54,7 @@ bool RespeakerLite::get_firmware_version_() {
   return true;
 }
 
-void RespeakerLite::get_mute_state_() {
+void RespeakerLite::get_mic_mute_state_() {
   uint8_t mute_req[3] = {0xF1, 0x81, 1};
   uint8_t mute_resp[2];
 
@@ -79,11 +79,29 @@ void RespeakerLite::get_mute_state_() {
   }
 }
 
-void RespeakerLite::loop() {
-  if (initialized) {
-    this->get_mute_state_();
+void RespeakerLite::mute_speaker() {
+  uint8_t mute_req[4] = {0xF1, 0x10, 1, 0};
+
+  auto error_code = this->write(mute_req, sizeof(mute_req));
+  if (error_code != i2c::ERROR_OK) {
+    ESP_LOGW(TAG, "Mute speaker failed");
   }
 }
 
-}  // namespace respeakerlite
+void RespeakerLite::unmute_speaker() {
+  uint8_t unmute_req[4] = {0xF1, 0x10, 1, 1};
+
+  auto error_code = this->write(unmute_req, sizeof(unmute_req));
+  if (error_code != i2c::ERROR_OK) {
+    ESP_LOGW(TAG, "Unmute speaker failed");
+  }
+}
+
+void RespeakerLite::loop() {
+  if (initialized) {
+    this->get_mic_mute_state_();
+  }
+}
+
+}  // namespace respeaker_lite
 }  // namespace esphome

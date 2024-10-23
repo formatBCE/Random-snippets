@@ -1,6 +1,6 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import binary_sensor, i2c, text_sensor
+from esphome.components import binary_sensor, i2c, sensor
 from esphome.const import (
     CONF_ID,
     CONF_RESET_PIN
@@ -13,8 +13,11 @@ AUTO_LOAD = [ "binary_sensor", "text_sensor" ]
 
 DEPENDENCIES = ['i2c']
 
-respeakerlite_ns = cg.esphome_ns.namespace('respeakerlite')
-RespeakerLite = respeakerlite_ns.class_('RespeakerLite', i2c.I2CDevice, cg.Component)
+respeaker_lite_ns = cg.esphome_ns.namespace('respeaker_lite')
+RespeakerLite = respeaker_lite_ns.class_('RespeakerLite', i2c.I2CDevice, cg.Component)
+#MuteSpeakerAction = respeaker_lite_ns.class_("MuteSpeakerAction", automation.Action)
+#UnmuteSpeakerAction = respeaker_lite_ns.class_("UnmuteSpeakerAction", automation.Action)
+
 CONF_MUTE_STATE= "mute_state"
 CONF_FIRMWARE_VERSION= "firmware_version"
 DEFAULT_ADDRESS = 0x42
@@ -39,7 +42,3 @@ async def to_code(config):
     if CONF_MUTE_STATE in config:
         mute_state = await binary_sensor.new_binary_sensor(config[CONF_MUTE_STATE])
         cg.add(var.set_mute_state(mute_state))
-
-    if CONF_FIRMWARE_VERSION in config:
-        firmware_version = await text_sensor.new_text_sensor(config[CONF_FIRMWARE_VERSION])
-        cg.add(var.set_firmware_version(firmware_version))

@@ -9,12 +9,15 @@
 #include "esphome/core/hal.h"
 
 namespace esphome {
-namespace respeakerlite {
+namespace respeaker_lite {
 
 class RespeakerLite : public i2c::I2CDevice, public Component {
  public:
   void setup() override;
   void loop() override;
+
+  void mute_speaker();
+  void unmute_speaker();
 
   void set_mute_state(binary_sensor::BinarySensor* mute_state) {
     this->mute_state_ = mute_state;
@@ -34,8 +37,8 @@ class RespeakerLite : public i2c::I2CDevice, public Component {
   text_sensor::TextSensor *firmware_version_{nullptr};
 
   bool get_firmware_version_();
-  void get_mute_state_();
+  void get_mic_mute_state_();
 };
 
-}  // namespace respeakerlite
+}  // namespace respeaker_lite
 }  // namespace esphome
