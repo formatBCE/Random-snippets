@@ -15,6 +15,9 @@ DEPENDENCIES = ['i2c']
 
 respeakerlite_ns = cg.esphome_ns.namespace('respeakerlite')
 RespeakerLite = respeakerlite_ns.class_('RespeakerLite', i2c.I2CDevice, cg.Component)
+MuteSpeakerAction = respeakerlite_ns.class_("MuteSpeakerAction", automation.Action)
+UnmuteSpeakerAction = respeakerlite_ns.class_("UnmuteSpeakerAction", automation.Action)
+
 CONF_MUTE_STATE= "mute_state"
 CONF_FIRMWARE_VERSION= "firmware_version"
 DEFAULT_ADDRESS = 0x42
@@ -43,3 +46,8 @@ async def to_code(config):
     if CONF_FIRMWARE_VERSION in config:
         firmware_version = await text_sensor.new_text_sensor(config[CONF_FIRMWARE_VERSION])
         cg.add(var.set_firmware_version(firmware_version))
+
+    RESPEAKER_LITE_ACTION_SCHEMA = cv.Schema({cv.GenerateID(): cv.use_id(RespeakerLite)})
+
+    @register_action("respeakerlite.mute_speaker", MuteSpeakerAction, RESPEAKER_LITE_ACTION_SCHEMA)
+    @register_action("respeakerlite.unmute_speaker", UnmuteSpeakerAction, RESPEAKER_LITE_ACTION_SCHEMA)
