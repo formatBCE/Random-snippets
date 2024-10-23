@@ -16,6 +16,7 @@ esphome:
     priority: 600
     then:
       - script.execute: adjust_led
+      - lambda: id(stop_word).disable();
       - delay: 30s
       - if:
           condition:
@@ -23,6 +24,11 @@ esphome:
           then:
             - lambda: id(init_in_progress) = false;
             - script.execute: adjust_led
+  on_shutdown:
+    then:
+      # Prevent loud noise on software restart
+      - lambda: id(respeaker).mute_speaker();
+
 esp32:
   board: esp32-s3-devkitc-1
   variant: esp32s3
@@ -144,6 +150,16 @@ respeaker_lite:
     id: firmware_version
 
 switch:
+  # Hardware speaker mute
+  - platform: template
+    id: speaker_mute_switch
+    internal: true
+    optimistic: true
+    turn_on_action:
+      - lambda: id(respeaker).mute_speaker();
+    turn_off_action:
+      - lambda: id(respeaker).unmute_speaker();
+  # stateless momentary mic mute switch
   - platform: gpio
     internal: true
     pin: 
@@ -153,6 +169,7 @@ switch:
     on_turn_on:
       - delay: 300ms
       - switch.turn_off: mute_toggle
+  # stateful user facing mic mute switch
   - platform: template
     id: mic_mute_switch
     name: Mic mute
@@ -179,12 +196,16 @@ switch:
           duration: 0.0s
       # Ring timer
       - script.execute: ring_timer
+      # Activate stop-word
+      - lambda: id(stop_word).enable();
       # Refresh LED
       - script.execute: adjust_led
       # If 15 minutes have passed and the timer is still ringing, stop it.
       - delay: 15min
       - switch.turn_off: timer_ringing
     on_turn_off:
+      # De-activate stop word
+      - lambda: id(stop_word).disable();
       # Stop any current annoucement (ie: stop the timer ring mid playback)
       - if:
           condition:
@@ -284,7 +305,6 @@ light:
 
     effects:
       - pulse:
-      - pulse:
           name: "Fast Pulse"
           transition_length: 100ms
           update_interval: 100ms
@@ -378,7 +398,7 @@ micro_wake_word:
   models:
     - model: okay_nabu
     - model: https://github.com/kahrendt/microWakeWord/releases/download/stop/stop.json
-      id: stop
+      id: stop_word
       internal: true
   vad:
   microphone: nabu_mic_mww
@@ -454,6 +474,7 @@ voice_assistant:
     - lambda: id(voice_assistant_phase) = ${voice_assist_idle_phase_id};
     - script.execute: adjust_led
     - script.stop: activate_stop_word_if_tts_step_is_long
+    - lambda: id(stop_word).disable();
   on_timer_finished:
     - switch.turn_on: timer_ringing
 
@@ -475,9 +496,8 @@ script:
   #   This allows us to prevent having the deactivation of the stop word before its own activation.
   - id: activate_stop_word_if_tts_step_is_long
     then:
-      - delay: 1s
-      # Enable stop wake word
-      - lambda: id(stop).enable();
+      - delay: 2s
+      - lambda: id(stop_word).enable();
   - id: adjust_led
     then:
       - if:
