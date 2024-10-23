@@ -1,7 +1,7 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome import automation
-from esphome.automation import register_action, maybe_simple_id
+from esphome.automation import maybe_simple_id
 from esphome.components import binary_sensor, i2c, text_sensor
 from esphome.const import (
     CONF_ID,
@@ -51,10 +51,15 @@ async def to_code(config):
 
 
 RESPEAKER_LITE_ACTION_SCHEMA = maybe_simple_id({cv.GenerateID(): cv.use_id(RespeakerLite)})
-@register_action("respeaker_lite.mute_speaker", MuteSpeakerAction, RESPEAKER_LITE_ACTION_SCHEMA)
-@register_action("respeaker_lite.unmute_speaker", UnmuteSpeakerAction, RESPEAKER_LITE_ACTION_SCHEMA)
 
 async def respeaker_lite_action(config, action_id, template_arg, args):
     var = cg.new_Pvariable(action_id, template_arg)
     await cg.register_parented(var, config[CONF_ID])
     return var
+
+automation.register_action(
+    "respeaker_lite.mute_speaker", MuteSpeakerAction, RESPEAKER_LITE_ACTION_SCHEMA
+)(respeaker_lite_action)
+automation.register_action(
+    "respeaker_lite.unmute_speaker", UnmuteSpeakerAction, RESPEAKER_LITE_ACTION_SCHEMA
+)(respeaker_lite_action)
