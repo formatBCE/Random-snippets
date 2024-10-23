@@ -40,3 +40,6 @@ async def to_code(config):
     if CONF_MUTE_STATE in config:
         mute_state = await binary_sensor.new_binary_sensor(config[CONF_MUTE_STATE])
         cg.add(var.set_mute_state(mute_state))
+    if CONF_FIRMWARE_VERSION in config:
+        firmware_version = await text_sensor.new_text_sensor(config[CONF_FIRMWARE_VERSION])
+        cg.add(var.set_firmware_version(firmware_version))

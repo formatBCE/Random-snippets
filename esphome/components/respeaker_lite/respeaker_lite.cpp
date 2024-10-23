@@ -29,27 +29,27 @@ void RespeakerLite::setup() {
 
 bool RespeakerLite::get_firmware_version_() {
   if (this->firmware_version_ != nullptr) {
-    if (!this->firmware_version_->has_state()) {
-      ESP_LOGI(TAG, "Reading firmware version");
-      const uint8_t version_req[] = {0xF0, 0xD8, 4};
-      uint8_t version_resp[4];
+    ESP_LOGI(TAG, "Reading firmware version");
+    const uint8_t version_req[] = {0xF0, 0xD8, 4};
+    uint8_t version_resp[4];
 
-      auto error_code = this->write(version_req, sizeof(version_req));
-      if (error_code != i2c::ERROR_OK) {
-        ESP_LOGW(TAG, "Request version failed");
-        return false;
-      }
-
-      error_code = this->read(version_resp, sizeof(version_resp));
-      if (error_code != i2c::ERROR_OK || version_resp[0] != 0) {
-        ESP_LOGW(TAG, "Read version failed");
-        return false;
-      }
-      
-      std::string version = str_sprintf("%u.%u.%u", version_resp[1], version_resp[2], version_resp[3]);
-      ESP_LOGI(TAG, "Firmware version: %s", version.c_str());
-      this->firmware_version_->publish_state(version);
+    auto error_code = this->write(version_req, sizeof(version_req));
+    if (error_code != i2c::ERROR_OK) {
+      ESP_LOGW(TAG, "Request version failed");
+      return false;
     }
+
+    error_code = this->read(version_resp, sizeof(version_resp));
+    if (error_code != i2c::ERROR_OK || version_resp[0] != 0) {
+      ESP_LOGW(TAG, "Read version failed");
+      return false;
+    }
+    
+    std::string version = str_sprintf("%u.%u.%u", version_resp[1], version_resp[2], version_resp[3]);
+    ESP_LOGI(TAG, "Firmware version: %s", version.c_str());
+    this->firmware_version_->publish_state(version);
+  } else {
+    ESP_LOGI(TAG, "Firmware version - skipping");
   }
   return true;
 }
