@@ -54,7 +54,7 @@ bool RespeakerLite::get_firmware_version_() {
   return true;
 }
 
-void RespeakerLite::get_mute_state_() {
+void RespeakerLite::get_mic_mute_state_() {
   uint8_t mute_req[3] = {0xF1, 0x81, 1};
   uint8_t mute_resp[2];
 
@@ -79,9 +79,17 @@ void RespeakerLite::get_mute_state_() {
   }
 }
 
+void mute_speaker() {
+
+}
+
+void unmute_speaker() {
+  
+}
+
 void RespeakerLite::loop() {
   if (initialized) {
-    this->get_mute_state_();
+    this->get_mic_mute_state_();
   }
 }
 
