@@ -51,3 +51,8 @@ async def to_code(config):
 RESPEAKER_LITE_ACTION_SCHEMA = cv.Schema({cv.GenerateID(): cv.use_id(RespeakerLite)})
 @register_action("respeaker_lite.mute_speaker", MuteSpeakerAction, RESPEAKER_LITE_ACTION_SCHEMA)
 @register_action("respeaker_lite.unmute_speaker", UnmuteSpeakerAction, RESPEAKER_LITE_ACTION_SCHEMA)
+
+async def respeaker_lite_action(config, action_id, template_arg, args):
+    var = cg.new_Pvariable(action_id, template_arg)
+    await cg.register_parented(var, config[CONF_ID])
+    return var
