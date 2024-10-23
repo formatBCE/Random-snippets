@@ -79,11 +79,11 @@ void RespeakerLite::get_mic_mute_state_() {
   }
 }
 
-void mute_speaker() {
+void RespeakerLite::mute_speaker() {
 
 }
 
-void unmute_speaker() {
+void RespeakerLite::unmute_speaker() {
 
 }
 
