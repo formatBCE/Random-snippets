@@ -432,6 +432,11 @@ voice_assistant:
   auto_gain: 0dBFS
   volume_multiplier: 1
   on_client_connected:
+     - if:
+        condition:
+          - lambda: return id(init_in_progress);
+        then:
+          - switch.turn_off: mic_mute_switch
     - lambda: id(init_in_progress) = false;
     - micro_wake_word.start:
     - lambda: id(voice_assistant_phase) = ${voice_assist_idle_phase_id};
