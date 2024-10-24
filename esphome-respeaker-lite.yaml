@@ -432,7 +432,7 @@ voice_assistant:
   auto_gain: 0dBFS
   volume_multiplier: 1
   on_client_connected:
-     - if:
+    - if:
         condition:
           - lambda: return id(init_in_progress);
           - switch.is_on: mic_mute_switch
