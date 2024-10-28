@@ -180,10 +180,36 @@ switch:
       } else {
         return false;
       }
+    on_turn_on:
+      - if:
+          condition:
+            lambda: return !id(init_in_progress);
+          then:
+            - script.execute:
+                id: play_sound
+                priority: false
+                sound_file: !lambda return id(mute_switch_on_sound);
+    on_turn_off:
+      - if:
+          condition:
+            lambda: return !id(init_in_progress);
+          then:
+            - script.execute:
+                id: play_sound
+                priority: false
+                sound_file: !lambda return id(mute_switch_off_sound);
     turn_on_action:
       - switch.turn_on: mute_toggle
     turn_off_action:
       - switch.turn_on: mute_toggle
+  # Wake Word Sound Switch.
+  - platform: template
+    id: wake_sound
+    name: Wake sound
+    icon: "mdi:bullhorn"
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
   - platform: template
     id: timer_ringing
     optimistic: true
@@ -234,7 +260,6 @@ button:
   - platform: restart
     name: Restart
     id: but_rest
-  
 
 binary_sensor:
   - platform: gpio
@@ -284,7 +309,7 @@ binary_sensor:
                                         - if:
                                             condition:
                                               and:
-                                                # - switch.is_off: master_mute_switch
+                                                - switch.is_off: mic_mute_switch
                                                 - not:
                                                     voice_assistant.is_running
                                             then:
@@ -342,6 +367,9 @@ i2s_audio:
       number: GPIO9
       allow_other_uses: true
 
+audio_dac:
+  - platform: aic3204
+
 microphone:
   - platform: nabu_microphone
     i2s_din_pin: GPIO44
@@ -355,7 +383,7 @@ microphone:
       id: nabu_mic_mww
     channel_1:
       id: nabu_mic_va
-
+      
 speaker:
   - platform: i2s_audio
     sample_rate: 16000
@@ -371,11 +399,12 @@ media_player:
     id: nabu_media_player
     name: Media Player
     internal: false
+    audio_dac:
     speaker:
     sample_rate: 16000
     volume_increment: 0.05
-    volume_min: 0.0
-    volume_max: 1.0
+    volume_min: 0.2
+    volume_max: 0.85
     on_announcement:
       - nabu.set_ducking:
           decibel_reduction: 20
@@ -393,6 +422,16 @@ media_player:
           - nabu.set_ducking:
               decibel_reduction: 0
               duration: 1.0s
+    files:
+      - id: mute_switch_on_sound
+        file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/mute_switch_on.flac
+      - id: mute_switch_off_sound
+        file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/mute_switch_off.flac
+      - id: timer_finished_sound
+        file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/timer_finished.flac
+      - id: wake_word_triggered_sound
+        file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/wake_word_triggered.flac
+
 
 micro_wake_word:
   models:
@@ -421,8 +460,18 @@ micro_wake_word:
                     .set_command(media_player::MediaPlayerCommand::MEDIA_PLAYER_COMMAND_STOP)
                     .set_announcement(true)
                     .perform();
-          - voice_assistant.start:
-              wake_word: !lambda return wake_word;
+              else:
+                - if:
+                    condition:
+                      switch.is_on: wake_sound
+                    then:
+                      - script.execute:
+                          id: play_sound
+                          priority: true
+                          sound_file: !lambda return id(wake_word_triggered_sound);
+                      - delay: 300ms
+                - voice_assistant.start:
+                    wake_word: !lambda return wake_word;
 
 voice_assistant:
   id: va
@@ -485,17 +534,45 @@ voice_assistant:
     - switch.turn_on: timer_ringing
 
 script:
+  # Script executed when we want to play sounds on the device.
+  - id: play_sound
+    parameters:
+      priority: bool
+      sound_file: "media_player::MediaFile*"
+    then:
+      - lambda: |-
+          if (priority) {
+            id(nabu_media_player)
+              ->make_call()
+              .set_command(media_player::MediaPlayerCommand::MEDIA_PLAYER_COMMAND_STOP)
+              .set_announcement(true)
+              .perform();
+          }
+          if ( (id(nabu_media_player).state != media_player::MediaPlayerState::MEDIA_PLAYER_STATE_ANNOUNCING ) || priority) {
+            id(nabu_media_player)
+              ->make_call()
+              .set_announcement(true)
+              .set_local_media_file(sound_file)
+              .perform();
+          }
+  # Script executed when the timer is ringing, to playback sounds.
   - id: ring_timer
     then:
       - while:
           condition:
             switch.is_on: timer_ringing
           then:
-            - media_player.play_media: http://{ha_ip}:8123/local/sounds/timer_finished.flac
-            - delay: 1s
+            - script.execute:
+                id: play_sound
+                priority: true
+                sound_file: !lambda return id(timer_finished_sound);
+            - wait_until:
+                lambda: |-
+                  return id(nabu_media_player)->state == media_player::MediaPlayerState::MEDIA_PLAYER_STATE_ANNOUNCING;
             - wait_until:
                 not:
-                  media_player.is_playing:
+                  lambda: |-
+                    return id(nabu_media_player)->state == media_player::MediaPlayerState::MEDIA_PLAYER_STATE_ANNOUNCING;
   # Script used activate the stop word if the TTS step is long.
   # Why is this wrapped on a script?
   #   Becasue we want to stop the sequence if the TTS step is faster than that.
