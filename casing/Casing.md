@@ -1,5 +1,14 @@
 ## Casing asembly instructions.
 
+This is the casing i made for myself. Sorry if something goes wrong or too complicated with it - i use it around the house now and it suits me well.
+#### Advantages: 
+- relatively easy to assemble/disassemble
+- looks pretty good
+- not the worst sound thanks to big-ish acoustic camera (although PLA isn't actually good for sound...)
+#### Disadvantages:
+- uses some other parts, that you'll have to buy...
+- doesn't give access to ESP and XMOS board USB ports. I tried, but ut starts looking ugly...
+
 ### Parts used
 1. USB female port like this: https://www.aliexpress.com/item/1005007469691687.html (for polished look). You can use simple USB-C cable instead...
 2. Speaker: 2 inch 4 Ohm 5 W speaker like this: https://a.co/d/cEpEeNt.
@@ -7,6 +16,7 @@
 4. M3 screws set like this: https://a.co/d/e6pNfBu.
 
 ### Preparation
+0. Make sure you have flashed latest (and working!) versions of software to ESP and XMOS board. I'm serious, you will have to unscrew at least one screw to get access to the USB.
 1. Print all STEP files. Use vibrant colours. :)
    - If you don't want to use fabric finish on your speaker, skip printing Applicator.
    - Supports needed only for main casing. Print it face down.
