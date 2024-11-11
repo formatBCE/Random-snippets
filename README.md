@@ -32,8 +32,12 @@ With this board i finally can build device, that will satisfy me and (more impor
 ### ToDo
 - DONE ~~software mute switch. Software triggering works, but state read doesn't work so far (needs custom ESPHome component for reading mute status with i2c). Check [Arduino example here](https://github.com/respeaker/ReSpeaker_Lite/blob/master/xiao_esp32s3_examples/xiao_i2c_get_register_value/xiao_i2c_get_register_value.ino#L55) if you want to help~~
 - OTA software update for Respeaker board. Can snug this functionality from PE project.
-- 48kHz bitrate. Right now the board works on 16kHz, but i convinced Seeed guys that we can try using 48kHz for better sound experience. They promised to deliver special firmware soon. Great guys!
-- hardware volume controls. Would be nice to have, but there's no pins left on ESP32... Thinking...
-- bigger LED strip. The problem is same as for hardware volume...
+- 48kHz bitrate. Right now the board works on 16kHz, ~~but i convinced Seeed guys that we can try using 48kHz for better sound experience. They promised to deliver special firmware soon.~~ but Seeed already preoared 48kHz firmware. Great guys!
+  It doesn't work yet with ESPHome though, since we need to add resampler for the microphone to downsample it to 16kHz (currently there's no way to use 48kHz for mic). Speaker works though.
+- hardware volume controls. ~~Would be nice to have, but there's no pins left on ESP32... Thinking...~~ I made some cradle with buttons and resistors to have 3 buttons on single pin - but it's bulky and inconvenient to solder, as well as to use in ESPHome. I decided to skip on it.
+- bigger LED strip. The problem is same as for hardware volume... But if you want, you can solder strip/ring to the GPIO1 instead of inbuilt LED. I decided that i'm good with one on board so far.
+
+### Casing
+I made some casing to improve family approval factor. [Check it out.](casing/Casing.md)
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/formatbce)
