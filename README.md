@@ -13,12 +13,12 @@ I ditched all proprietary assistants for good about 6 months ago, and dove into 
 With this board i finally can build device, that will satisfy me and (more important) my family as their trusted voice assistant.
 
 ### What to do with it?
+__* Make sure you're using corresponding versions of I2S and ESPHome firmware. There is default one (working on 16kHz), and 48kHz one. Latter is even more experimental, but the sound quality is MUCH better. Thanks to Mike aka @mikey60 and his fork to nabu_microphone!__
 1. Get Respeaker Lite with ESP32 soldered to it (you may solder it yourself, pins on the back can remain dry, they're not used)
 2. [Solder USR to D2 and MUTE to D3 pins](https://wiki.seeedstudio.com/respeaker_button/)
 3. [Flash I2S firmware to the XMOS board](https://wiki.seeedstudio.com/xiao_respeaker/#flash-the-i2s-firmware) (pay attention to USB port, you need the main board port, not ESP32 one)
-4. Flash ESPHome firmware (YAML included, adjust to your environment) to ESP32 (use its port)
-5. Add device to Home Assistant.
-   
+5. Flash ESPHome firmware (YAML included, adjust to your environment) to ESP32 (use its port)
+6. Add device to Home Assistant.
 
 ### Current state
 - voice communication: works
@@ -32,8 +32,8 @@ With this board i finally can build device, that will satisfy me and (more impor
 ### ToDo
 - DONE ~~software mute switch. Software triggering works, but state read doesn't work so far (needs custom ESPHome component for reading mute status with i2c). Check [Arduino example here](https://github.com/respeaker/ReSpeaker_Lite/blob/master/xiao_esp32s3_examples/xiao_i2c_get_register_value/xiao_i2c_get_register_value.ino#L55) if you want to help~~
 - OTA software update for Respeaker board. Can snug this functionality from PE project.
-- 48kHz bitrate. Right now the board works on 16kHz, ~~but i convinced Seeed guys that we can try using 48kHz for better sound experience. They promised to deliver special firmware soon.~~ but Seeed already preoared 48kHz firmware. Great guys!
-  It doesn't work yet with ESPHome though, since we need to add resampler for the microphone to downsample it to 16kHz (currently there's no way to use 48kHz for mic). Speaker works though.
+- DONE ~~48kHz bitrate. Right now the board works on 16kHz, but Seeed already preoared 48kHz firmware. Great guys!~~
+  ~~It doesn't work yet with ESPHome though, since we need to add resampler for the microphone to downsample it to 16kHz (currently there's no way to use 48kHz for mic). Speaker works though.~~
 - hardware volume controls. ~~Would be nice to have, but there's no pins left on ESP32... Thinking...~~ I made some cradle with buttons and resistors to have 3 buttons on single pin - but it's bulky and inconvenient to solder, as well as to use in ESPHome. I decided to skip on it.
 - bigger LED strip. The problem is same as for hardware volume... But if you want, you can solder strip/ring to the GPIO1 instead of inbuilt LED. I decided that i'm good with one on board so far.
 
