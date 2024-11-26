@@ -1,0 +1,17 @@
+{
+  "name": "Respeaker Satellite",
+  "version": "2024.11.1",
+  "home_assistant_domain": "esphome",
+  "new_install_prompt_erase": false,
+  "builds": [
+    {
+      "chipFamily": "ESP32-S3",
+      "ota": {
+        "md5": "1234567890abcdef1234567890abcdef",
+        "path": "firmware.ota.bin",
+        "release_url": "https://github.com/formatBCE/Respeaker-Lite-ESPHome-integration",
+        "summary": "Test update",
+      }
+    }
+  ]
+}
