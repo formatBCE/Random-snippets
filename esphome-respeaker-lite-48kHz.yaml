@@ -10,6 +10,7 @@ esphome:
   name: respeaker-satellite
   friendly_name: respeaker-satellite
   min_version: 2024.9.0
+  compile_process_limit: 1
   platformio_options:
     board_build.flash_mode: dio
   on_boot:
