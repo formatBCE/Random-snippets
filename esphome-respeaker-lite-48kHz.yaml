@@ -5,7 +5,6 @@ substitutions:
   voice_assist_replying_phase_id: "4"
   voice_assist_not_ready_phase_id: "10"
   voice_assist_error_phase_id: "11"
-  voice_assist_muted_phase_id: "12"
 esphome:
   name: respeaker-satellite
   friendly_name: respeaker-satellite
@@ -82,7 +81,7 @@ psram:
 external_components:
   - source:
       type: git
-      url: https://github.com/esphome/voice-kit
+      url: https://github.com/esphome/home-assistant-voice-pe
       ref: dev
     components:
       - aic3204
@@ -95,13 +94,10 @@ external_components:
     refresh: 0s
   - source:
       type: git
-      url: https://github.com/mikey60/home-assistant-voice-pe
-      ref: dev
+      url: https://github.com/formatBCE/home-assistant-voice-pe
+      ref: 48kHz_mic_support
     components:
       - nabu_microphone
-    refresh: 0s
-  - source: github://pr#7605
-    components: [ audio, i2s_audio, speaker]
     refresh: 0s
   - source:
       type: git
@@ -396,7 +392,9 @@ speaker:
     bits_per_sample: 32bit
     i2s_audio_id: i2s_output
     dac_type: external
-    channel: left
+    channel: stereo
+    timeout: never
+    buffer_duration: 100ms
 
 media_player:
   - platform: nabu
@@ -440,6 +438,12 @@ media_player:
 micro_wake_word:
   models:
     - model: okay_nabu
+      id: okay_nabu
+      probability_cutoff: 0.8
+    - model: hey_jarvis
+      id: hey_jarvis
+    - model: hey_mycroft
+      id: hey_mycroft
     - model: https://github.com/kahrendt/microWakeWord/releases/download/stop/stop.json
       id: stop_word
       internal: true
@@ -639,12 +643,6 @@ script:
                                         .set_brightness(0.6)
                                         .set_rgb(1.0, 1.0, 0.2)
                                         .set_effect("Fast Pulse")
-                                        .perform();
-                                      break;
-                                    case ${voice_assist_muted_phase_id}:
-                                      id(led_ww).turn_on()
-                                        .set_brightness(0.3)
-                                        .set_rgb(1.0, 0.0, 0.0)
                                         .perform();
                                       break;
                                     case ${voice_assist_not_ready_phase_id}:
