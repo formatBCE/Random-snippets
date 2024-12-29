@@ -15,7 +15,7 @@ I ditched all proprietary assistants for good about 6 months ago, and dove into 
 With this board i finally can build device, that will satisfy me and (more important) my family as their trusted voice assistant.
 
 ## What to do with it?
-__* Make sure you're using corresponding versions of I2S and ESPHome firmware. There is default one (working on 16kHz), and 48kHz one. Latter is even more experimental, but the sound quality is MUCH better. Thanks to Mike aka @mikey60 and his fork to nabu_microphone!__
+__* Thanks to Mike aka @mikey60 and his fork to nabu_microphone, this project is using 48kHz sample rate for better music playback quality.*__
 1. Get Respeaker Lite with ESP32 soldered to it (you may solder it yourself, pins on the back can remain dry, they're not used)
 2. [Solder USR to D2 and MUTE to D3 pins](https://wiki.seeedstudio.com/respeaker_button/)
 3. [Flash I2S firmware to the XMOS board](https://wiki.seeedstudio.com/xiao_respeaker/#flash-the-i2s-firmware) (pay attention to USB port, you need the main board port, not ESP32 one)
@@ -30,6 +30,10 @@ __* Make sure you're using corresponding versions of I2S and ESPHome firmware. T
 - LED: works (also can be exposed as light in HA)
 - mute: hardware button works, software button works
 - action button: works, multifunctional, based on PE logic
+- default HA wizard for satellites: works
+- drop-down with wake word selection: works
+- added switches to turn off button sounds, mute/unmute sounds
+- added sensors for next device timer properties (time is updated once per 5 sec, name is available if set)
 
 ## ToDo
 - DONE ~~software mute switch. Software triggering works, but state read doesn't work so far (needs custom ESPHome component for reading mute status with i2c). Check [Arduino example here](https://github.com/respeaker/ReSpeaker_Lite/blob/master/xiao_esp32s3_examples/xiao_i2c_get_register_value/xiao_i2c_get_register_value.ino#L55) if you want to help~~
