@@ -16,10 +16,10 @@ With this board i finally can build device, that will satisfy me and (more impor
 
 ## What to do with it?
 __* Thanks to Mike aka @mikey60 and his fork to nabu_microphone, this project is using 48kHz sample rate for better music playback quality.*__
-1. Get Respeaker Lite with ESP32 soldered to it (you may solder it yourself, pins on the back can remain dry, they're not used)
-2. [Solder USR to D2 and MUTE to D3 pins](https://wiki.seeedstudio.com/respeaker_button/)
-3. [Flash I2S firmware to the XMOS board](https://wiki.seeedstudio.com/xiao_respeaker/#flash-the-i2s-firmware) (pay attention to USB port, you need the main board port, not ESP32 one)
-5. Flash ESPHome firmware (YAML included, adjust to your environment) to ESP32 (use its port)
+1. Get Respeaker Lite with ESP32 soldered to it (you may solder it yourself, pins on the back can remain dry, they're not used).
+2. [Solder USR to D2 and MUTE to D3 pins](https://wiki.seeedstudio.com/respeaker_button/).
+3. [Flash latest 48kHz I2S firmware to the XMOS board](https://wiki.seeedstudio.com/xiao_respeaker/#flash-the-i2s-firmware) (pay attention to USB port, you need the main board port, not ESP32 one) Make sure you're using 48kHz version, as default one is 16kHz and won't work with this repo.
+5. Flash ESPHome firmware (YAML included, adjust to your environment) to ESP32 (use its port).
 6. Add device to Home Assistant.
 
 ## Current state
