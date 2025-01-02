@@ -16,6 +16,9 @@ substitutions:
   voice_assist_error_phase_id: '11'
 
 esphome:
+  project: 
+    name: formatbce.Respeaker-Lite Satellite
+    version: 2025.1.1
   name: respeaker-satellite
   friendly_name: respeaker-satellite
   min_version: 2024.12.2
