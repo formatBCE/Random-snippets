@@ -17,7 +17,7 @@ substitutions:
 
 esphome:
   project: 
-    name: formatbce.Respeaker-Lite Satellite
+    name: formatbce.Respeaker Lite Satellite
     version: 2025.1.1
   name: respeaker-satellite
   friendly_name: respeaker-satellite
