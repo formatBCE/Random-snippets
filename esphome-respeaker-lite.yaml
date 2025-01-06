@@ -18,7 +18,7 @@ substitutions:
 esphome:
   project: 
     name: formatbce.Respeaker Lite Satellite
-    version: 2025.1.1
+    version: 2025.1.2
   name: respeaker-satellite
   friendly_name: respeaker-satellite
   min_version: 2024.12.2
@@ -108,6 +108,13 @@ logger:
 
 api:
   id: api_id
+  actions:
+    - action: start_va
+      then:
+        - voice_assistant.start
+    - action: stop_va
+      then:
+        - voice_assistant.stop
   on_client_connected:
     - script.execute: control_leds
   on_client_disconnected:
