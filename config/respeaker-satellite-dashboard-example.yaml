@@ -1,0 +1,10 @@
+packages:
+  respeaker-satellite: !include common/respeaker-satellite-base.yaml
+
+esphome:
+  name: respeaker-satellite
+  friendly_name: respeaker-satellite
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
