@@ -19,7 +19,7 @@ esphome:
   project: 
     name: formatbce.Respeaker Lite Satellite
     version: 2025.1.3
-  min_version: 2024.12.2
+  min_version: 2024.12.4
   platformio_options:
     board_build.flash_mode: dio
   on_boot:
@@ -962,9 +962,6 @@ external_components:
     components: 
       - respeaker_lite
     refresh: 0s
-  - source: github://pr#8018
-    components: [http_request]
-    refresh: 0s
 
 audio_dac:
   - platform: aic3204
@@ -1139,6 +1136,12 @@ button:
     name: "Factory Reset"
     entity_category: diagnostic
     internal: true
+  - platform: restart
+    id: restart_button
+    name: "Restart"
+    entity_category: config
+    disabled_by_default: true
+    icon: "mdi:restart"
 
 debug:
   update_interval: 5s
